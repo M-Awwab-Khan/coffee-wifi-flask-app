@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField
@@ -28,9 +28,9 @@ class CafeForm(FlaskForm):
     location = StringField('Cafe Location on Google Maps (URL)', validators=[URL()])
     o_time = StringField('Opening Time e.g. 8AM', validators=[DataRequired()])
     c_time = StringField('Closing Time e.g. 5:30PM', validators=[DataRequired()])
-    rating = SelectField('Coffee Rating', choices=[(1, '☕'), (2, '☕☕'), (3, '☕☕☕'), (4, '☕☕☕☕'), (5, '☕☕☕☕☕')], validators=[DataRequired()])
-    wifi = SelectField('Wifi Strength Rating', choices=[(0, '✘'), (1, '💪'), (2, '💪💪'), (3, '💪💪💪'), (4, '💪💪💪💪'), (5, '💪💪💪💪💪')], validators=[DataRequired()])
-    power = SelectField('Power Socket Availability', choices=[(0, '✘'), (1, '🔌'), (2, '🔌'), (3, '🔌🔌🔌'), (4, '🔌🔌🔌🔌'), (5, '🔌🔌🔌🔌🔌')], validators=[DataRequired()])
+    rating = SelectField('Coffee Rating', choices=['☕','☕☕','☕☕☕','☕☕☕☕', '☕☕☕☕☕'], validators=[DataRequired()])
+    wifi = SelectField('Wifi Strength Rating', choices=['✘', '💪', '💪💪', '💪💪💪', '💪💪💪💪', '💪💪💪💪💪'], validators=[DataRequired()])
+    power = SelectField('Power Socket Availability', choices=['✘', '🔌', '🔌🔌', '🔌🔌🔌', '🔌🔌🔌🔌', '🔌🔌🔌🔌🔌'], validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 # Exercise:
@@ -48,10 +48,15 @@ def home():
     return render_template("index.html")
 
 
-@app.route('/add')
+@app.route('/add', methods=['POST', 'GET'])
 def add_cafe():
     form = CafeForm()
     if form.validate_on_submit():
+        to_write = f"\n{form.cafe.data}, {form.location.data}, {form.o_time.data}, {form.c_time.data}, {form.rating.data}, {form.wifi.data}, {form.power.data}"
+        with open('cafe-data.csv', mode='a', newline='', encoding='utf-8') as csv_file:
+            csv_file.write(to_write)
+        return redirect('/cafes')
+
     # Exercise:
     # Make the form write a new row into cafe-data.csv
     # with   if form.validate_on_submit()
